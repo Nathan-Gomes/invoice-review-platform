@@ -1,0 +1,6 @@
+Northline Electric Company
+Account Number: 4471-982-01
+Service Period: 02/01/2026 to 02/28/2026
+Usage: 12,400 kWh
+Fees: $8.10
+Total Amount Due: $1,844.22

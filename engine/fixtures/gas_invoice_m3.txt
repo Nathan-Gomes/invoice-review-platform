@@ -1,0 +1,5 @@
+Enbridge Gas Distribution
+Invoice #: EG-99201
+Billing Period: 03/01/2026 to 03/31/2026
+Consumption: 129 m3
+Total Amount Due: $71.40

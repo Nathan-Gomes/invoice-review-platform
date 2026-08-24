@@ -1,0 +1,5 @@
+Metro Gas Utility
+Invoice #: MG-2026-0417
+Billing Period: 03/01/2026 to 03/31/2026
+Consumption: 45.6 CCF
+Total Amount Due: $58.20

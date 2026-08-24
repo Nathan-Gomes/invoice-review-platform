@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/*
+  Visual system for the Invoice Review product.
+  Deliberately restrained: one light neutral background, white work
+  surfaces, charcoal (not pure black) text, one brand accent reserved for
+  selection/primary actions, and red/amber/green reserved for status only.
+*/
+:root {
+  /* Base surfaces */
+  --color-page: #f6f7f8;       /* light neutral background behind everything */
+  --color-surface: #ffffff;     /* white work surfaces: tables, panels, cards */
+  --color-surface-muted: #fafafa;
+
+  /* Text */
+  --color-ink: #1f2328;         /* charcoal, not pure black */
+  --color-ink-muted: #5c6570;
+  --color-ink-faint: #8a919c;
+
+  /* Borders */
+  --color-hairline: #e4e7eb;
+  --color-hairline-strong: #d3d8de;
+
+  /* One brand accent — selections and primary actions only */
+  --color-brand: #2f5fd0;
+  --color-brand-hover: #2650b3;
+  --color-brand-soft: #eaf0fd;
+
+  /* Status — reserved exclusively for status meaning, never decoration */
+  --color-critical: #dc2626;
+  --color-critical-soft: #fdecec;
+  --color-watch: #d97706;
+  --color-watch-soft: #fdf3e2;
+  --color-good: #16a34a;
+  --color-good-soft: #eaf7ee;
+  --color-neutral-status: #6b7280;
+  --color-neutral-status-soft: #f0f1f3;
+
+  /* Spacing/radius discipline */
+  --radius-sm: 4px;
+  --radius-md: 8px; /* max corner radius across the product */
+}
+
+@theme inline {
+  --color-page: var(--color-page);
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-hairline: var(--color-hairline);
+  --color-hairline-strong: var(--color-hairline-strong);
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-critical: var(--color-critical);
+  --color-critical-soft: var(--color-critical-soft);
+  --color-watch: var(--color-watch);
+  --color-watch-soft: var(--color-watch-soft);
+  --color-good: var(--color-good);
+  --color-good-soft: var(--color-good-soft);
+  --color-neutral-status: var(--color-neutral-status);
+  --color-neutral-status-soft: var(--color-neutral-status-soft);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+}
+
+/* No dark-mode media query: this product intentionally has one consistent
+   light appearance rather than adapting to system preference — an
+   operational tool, not a marketing site. */
+
+html, body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--color-hairline);
+}
+
+/* Typography hierarchy — one scale reused everywhere instead of ad hoc sizes */
+.text-page-title   { font-size: 1.375rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-ink); }
+.text-section-title{ font-size: 1rem;     font-weight: 600; color: var(--color-ink); }
+.text-label        { font-size: 0.8125rem; font-weight: 500; color: var(--color-ink-muted); }
+.text-metadata     { font-size: 0.75rem;  font-weight: 400; color: var(--color-ink-faint); }
+
+/* Consistent control heights */
+.control-height-sm { height: 32px; }
+.control-height-md { height: 36px; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-hairline-strong); border-radius: 999px; }

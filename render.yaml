@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: nathan-invoice-review
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: PUBLIC_DEMO_READ_ONLY
+        value: "1"
+      - key: INVOICE_APP_ENV
+        value: demo
+      - key: API_INTERNAL_URL
+        value: http://127.0.0.1:8000

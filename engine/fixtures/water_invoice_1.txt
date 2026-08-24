@@ -1,0 +1,6 @@
+Cedar Municipal Water Utilities
+Invoice #: WU-88213
+Billing Period: 01/01/2026 to 01/31/2026
+Consumption: 45,230 gallons
+Tax: $12.40
+Total Amount Due: $412.55
