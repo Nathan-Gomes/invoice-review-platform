@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ArrowLeft, AlertTriangle, Copy } from "lucide-react";
 import {
   getInvoice, getInvoiceDocumentUrl, updateInvoice, approveInvoice, listInvoices,
-  listProperties, getInvoiceAudit, type InvoiceUpdatePayload,
+  listProperties, getInvoiceAudit, type InvoiceDetail, type InvoiceUpdatePayload,
 } from "@/lib/api";
-import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
@@ -22,6 +21,24 @@ const CATEGORIES = ["Water", "Electricity", "Natural Gas", "Other"];
 function getOperatorName(): string {
   if (typeof window === "undefined") return "";
   return window.localStorage.getItem("operatorName") || "";
+}
+
+function invoiceToForm(invoice: InvoiceDetail): InvoiceUpdatePayload {
+  return {
+    property_id: invoice.property_id,
+    category: invoice.category,
+    vendor: invoice.vendor,
+    invoice_number: invoice.invoice_number || "",
+    billing_start: invoice.billing_start || "",
+    billing_end: invoice.billing_end || "",
+    consumption: invoice.consumption,
+    consumption_unit: invoice.consumption_unit || "",
+    taxes_fees: invoice.taxes_fees,
+    total_cost: invoice.total_cost,
+    notes: invoice.notes || "",
+    duplicate_override: false,
+    changed_by: getOperatorName() || "unknown",
+  };
 }
 
 export default function InvoiceReviewPage() {
@@ -46,33 +63,28 @@ export default function InvoiceReviewPage() {
     queryFn: () => getInvoiceAudit(invoiceId),
   });
 
-  const [form, setForm] = useState<InvoiceUpdatePayload | null>(null);
-  const [overrideDuplicate, setOverrideDuplicate] = useState(false);
-
-  useEffect(() => {
-    if (invoice) {
-      setForm({
-        property_id: invoice.property_id,
-        category: invoice.category,
-        vendor: invoice.vendor,
-        invoice_number: invoice.invoice_number || "",
-        billing_start: invoice.billing_start || "",
-        billing_end: invoice.billing_end || "",
-        consumption: invoice.consumption,
-        consumption_unit: invoice.consumption_unit || "",
-        taxes_fees: invoice.taxes_fees,
-        total_cost: invoice.total_cost,
-        notes: invoice.notes || "",
-        duplicate_override: false,
-        changed_by: getOperatorName() || "unknown",
-      });
-      setOverrideDuplicate(false);
-    }
-  }, [invoice]);
+  const [formDraft, setFormDraft] = useState<{
+    invoiceId: number;
+    values: InvoiceUpdatePayload;
+  } | null>(null);
+  const [duplicateOverride, setDuplicateOverride] = useState<{
+    invoiceId: number;
+    enabled: boolean;
+  } | null>(null);
+  const form = formDraft?.invoiceId === invoiceId
+    ? formDraft.values
+    : invoice
+      ? invoiceToForm(invoice)
+      : null;
+  const overrideDuplicate = duplicateOverride?.invoiceId === invoiceId
+    ? duplicateOverride.enabled
+    : false;
 
   const saveMutation = useMutation({
     mutationFn: (payload: InvoiceUpdatePayload) => updateInvoice(invoiceId, payload),
-    onSuccess: () => {
+    onSuccess: (updatedInvoice) => {
+      setFormDraft({ invoiceId, values: invoiceToForm(updatedInvoice) });
+      setDuplicateOverride(null);
       queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
     },
@@ -110,7 +122,8 @@ export default function InvoiceReviewPage() {
   const canApprove = errors.length === 0 && (!invoice.duplicate.is_duplicate || overrideDuplicate);
 
   function updateField<K extends keyof InvoiceUpdatePayload>(key: K, value: InvoiceUpdatePayload[K]) {
-    setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
+    if (!form) return;
+    setFormDraft({ invoiceId, values: { ...form, [key]: value } });
   }
 
   function handleSave() {
@@ -201,7 +214,7 @@ export default function InvoiceReviewPage() {
                   <input
                     type="checkbox"
                     checked={overrideDuplicate}
-                    onChange={(e) => setOverrideDuplicate(e.target.checked)}
+                    onChange={(e) => setDuplicateOverride({ invoiceId, enabled: e.target.checked })}
                     className="h-3.5 w-3.5 accent-[var(--color-brand)]"
                   />
                   This is not a duplicate — allow approval

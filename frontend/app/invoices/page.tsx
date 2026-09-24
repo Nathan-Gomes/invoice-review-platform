@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Upload, Search, CheckCircle2 } from "lucide-react";
 import { listInvoices, uploadInvoices, batchApprove, type InvoiceSummary } from "@/lib/api";
-import { Surface, SurfaceHeader } from "@/components/ui/surface";
+import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/status-pill";

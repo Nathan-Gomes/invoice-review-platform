@@ -6,7 +6,7 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { Surface, SurfaceHeader } from "@/components/ui/surface";
 import { StatusPill, ConfidenceDots } from "@/components/ui/status-pill";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, formatPercent, formatDate, humanizeRule } from "@/lib/utils";
+import { formatCurrency, formatPercent, formatDate } from "@/lib/utils";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar,

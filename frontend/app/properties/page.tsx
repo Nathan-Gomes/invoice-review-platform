@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Building2, Plus } from "lucide-react";
 import { listProperties, createProperty } from "@/lib/api";
-import { Surface, SurfaceHeader } from "@/components/ui/surface";
+import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

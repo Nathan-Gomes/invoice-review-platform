@@ -16,11 +16,6 @@ import { X, Search } from "lucide-react";
 const TIERS = ["All", "Critical", "Watch", "Informational"];
 type SortKey = "impact" | "recency" | "confidence";
 
-function getOperatorName(): string {
-  if (typeof window === "undefined") return "";
-  return window.localStorage.getItem("operatorName") || "";
-}
-
 export default function TriagePage() {
   const [tier, setTier] = useState("All");
   const [propertyFilter, setPropertyFilter] = useState<string>("");
