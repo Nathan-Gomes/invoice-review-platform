@@ -139,6 +139,60 @@ def test_updating_invoice_with_no_duplicate_still_works(client):
     assert detail["duplicate"]["matched_invoice_id"] is None
 
 
+def test_correcting_duplicate_fields_clears_the_stored_match(client):
+    """Once the conflicting identity is corrected, the invoice must leave
+    Duplicate state instead of retaining the previous logical match forever."""
+    pid = _seed_property_and_conn(client)
+
+    conn = db.get_conn()
+    original_fields = {
+        "property_id": pid, "category": "Water", "vendor": "Cedar Water",
+        "invoice_number": "W-DUP", "billing_start": "2026-01-01", "billing_end": "2026-01-31",
+        "consumption": 1000, "consumption_unit": "gallons", "total_cost": 400.0,
+    }
+    sf1 = db.insert_source_file(conn, "inv1.pdf", "h1", "pdf", "/tmp/x", "text")
+    inv1_id = db.insert_draft_invoice(conn, sf1, original_fields)
+    db.update_invoice(conn, inv1_id, original_fields)
+
+    sf2 = db.insert_source_file(conn, "inv2.pdf", "h2", "pdf", "/tmp/y", "text")
+    inv2_id = db.insert_draft_invoice(conn, sf2, original_fields)
+    conn.close()
+
+    duplicate_payload = {
+        **original_fields,
+        "taxes_fees": None,
+        "notes": "",
+        "duplicate_override": False,
+        "changed_by": "test",
+    }
+    flagged = client.patch(f"/api/invoices/{inv2_id}", json=duplicate_payload)
+    assert flagged.status_code == 200
+    assert flagged.json()["duplicate"]["matched_invoice_id"] == inv1_id
+    assert flagged.json()["state"] == "Duplicate"
+
+    corrected_payload = {
+        **duplicate_payload,
+        "invoice_number": "W-002",
+        "billing_start": "2026-02-01",
+        "billing_end": "2026-02-28",
+        "total_cost": 450.0,
+    }
+    corrected = client.patch(f"/api/invoices/{inv2_id}", json=corrected_payload)
+
+    assert corrected.status_code == 200
+    detail = corrected.json()
+    assert detail["duplicate"]["is_duplicate"] is False
+    assert detail["duplicate"]["matched_invoice_id"] is None
+    assert detail["state"] == "Needs Review"
+
+    approved = client.post(
+        f"/api/invoices/{inv2_id}/approve",
+        json={"approved_by": "test"},
+    )
+    assert approved.status_code == 200
+    assert client.get(f"/api/invoices/{inv2_id}").json()["state"] == "Approved"
+
+
 def test_batch_approve_rejects_low_confidence_invoice_even_if_client_submits_it(client):
     """
     Regression test: the batch-approve endpoint must independently verify

@@ -351,8 +351,13 @@ def get_invoice_for_source_file(conn, source_file_id):
     ).fetchone()
 
 
+# ``None`` clears a corrected invoice's stored duplicate link, so omission
+# needs a separate value when callers want to preserve the existing link.
+_KEEP_EXISTING = object()
+
+
 def update_invoice(conn, invoice_id, fields, validation_errors=None,
-                    logical_duplicate_of=None, duplicate_override=None,
+                    logical_duplicate_of=_KEEP_EXISTING, duplicate_override=None,
                     changed_by=""):
     existing = get_invoice(conn, invoice_id)
     tracked_fields = [
@@ -385,7 +390,11 @@ def update_invoice(conn, invoice_id, fields, validation_errors=None,
             fields.get("total_cost"),
             fields.get("notes", ""),
             "|".join(validation_errors or []),
-            logical_duplicate_of if logical_duplicate_of is not None else existing["logical_duplicate_of"],
+            (
+                existing["logical_duplicate_of"]
+                if logical_duplicate_of is _KEEP_EXISTING
+                else logical_duplicate_of
+            ),
             int(duplicate_override) if duplicate_override is not None else existing["duplicate_override"],
             changed_by or existing["last_modified_by"],
             invoice_id,
