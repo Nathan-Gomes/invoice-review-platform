@@ -83,7 +83,7 @@ invoice_app/
 │   └── lib/               # api.ts (typed client), utils.ts, query-provider.tsx
 ├── streamlit_legacy/app.py
 ├── data/                 # Shared SQLite db + uploaded PDFs (created on first run)
-└── tests/                # 37 engine tests
+└── tests/                # Python engine and API regression suite
 ```
 
 ## Not built / deliberately deferred

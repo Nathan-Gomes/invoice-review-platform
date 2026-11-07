@@ -6,6 +6,7 @@ but the same vendor/invoice number/property/period/amount).
 """
 
 from datetime import date
+import unicodedata
 
 REQUIRED_FIELDS = [
     "property_id", "category", "vendor",
@@ -32,6 +33,13 @@ def _parse_date(value):
         return date.fromisoformat(value)
     except (ValueError, TypeError):
         return None
+
+
+def _normalize_identifier(value) -> str:
+    """Normalize human-entered identifiers without changing stored values."""
+    if value is None:
+        return ""
+    return unicodedata.normalize("NFKC", str(value)).strip().casefold()
 
 
 def validate_invoice(fields: dict) -> list[str]:
@@ -88,6 +96,7 @@ def find_logical_duplicates(conn, fields: dict, exclude_id=None):
     matches = []
     start = _parse_date(fields.get("billing_start"))
     end = _parse_date(fields.get("billing_end"))
+    invoice_number = _normalize_identifier(fields.get("invoice_number"))
 
     for c in candidates:
         same_vendor = (c["vendor"] or "").strip().lower() == (fields.get("vendor") or "").strip().lower()
@@ -95,7 +104,7 @@ def find_logical_duplicates(conn, fields: dict, exclude_id=None):
             continue
 
         # Match 1: same invoice number
-        if fields.get("invoice_number") and c["invoice_number"] == fields.get("invoice_number"):
+        if invoice_number and _normalize_identifier(c["invoice_number"]) == invoice_number:
             matches.append({
                 "invoice": c,
                 "reason": (

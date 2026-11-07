@@ -76,6 +76,49 @@ def test_updating_invoice_that_matches_a_duplicate_does_not_crash(client):
     assert "invoice #" in detail["duplicate"]["reason"].lower()
 
 
+def test_duplicate_invoice_number_ignores_case_and_surrounding_whitespace(client):
+    """Invoice numbers entered or extracted with harmless formatting
+    differences must still be recognized as the same vendor invoice."""
+    pid = _seed_property_and_conn(client)
+
+    conn = db.get_conn()
+    original_fields = {
+        "property_id": pid, "category": "Water", "vendor": "Cedar Water",
+        "invoice_number": "WU-001", "billing_start": "2026-01-01", "billing_end": "2026-01-31",
+        "consumption": 1000, "consumption_unit": "gallons", "total_cost": 400.0,
+    }
+    sf1 = db.insert_source_file(conn, "inv1.pdf", "h1", "pdf", "/tmp/x", "text")
+    inv1_id = db.insert_draft_invoice(conn, sf1, original_fields)
+    db.update_invoice(conn, inv1_id, original_fields)
+
+    sf2 = db.insert_source_file(conn, "inv2.pdf", "h2", "pdf", "/tmp/y", "text")
+    inv2_fields = dict(
+        original_fields,
+        invoice_number=" wu-001 ",
+        billing_start="2026-02-01",
+        billing_end="2026-02-28",
+        total_cost=450.0,
+    )
+    inv2_id = db.insert_draft_invoice(conn, sf2, inv2_fields)
+    conn.close()
+
+    response = client.patch(
+        f"/api/invoices/{inv2_id}",
+        json={
+            **inv2_fields,
+            "taxes_fees": None,
+            "notes": "",
+            "duplicate_override": False,
+            "changed_by": "test",
+        },
+    )
+
+    assert response.status_code == 200
+    detail = response.json()
+    assert detail["state"] == "Duplicate"
+    assert detail["duplicate"]["matched_invoice_id"] == inv1_id
+
+
 def test_updating_invoice_with_overlapping_period_duplicate_does_not_crash(client):
     """Same crash class, triggered via the other duplicate-match path (same
     vendor + amount + overlapping billing period, rather than same invoice number)."""
